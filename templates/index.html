@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+
+<html lang="ja">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BBS予定表作成ツール</title>
+
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+
+<script>
+  window.addEventListener("load", () => {
+    const img = document.getElementById("resultImage");
+    if (img) {
+      img.style.display = "none";
+    }
+  });
+</script>
+
+<body>
+
+    <div class="container">
+
+        <h2>BBS予定表作成ツール</h2>
+
+        <!-- ログ -->
+        <div class="box" id="logBox">
+            <h3>| ログ</h3>
+            <div class="log">{% for line in logs %}
+{{ line }}
+{% endfor %}
+            </div>
+        </div>
+
+        <!-- 今週のコメント取得 / 画像生成 / リセット -->
+        <div class="box">
+            <div class="button-row">
+            <form method="POST" action="/fetch">
+                <button type="submit">[BBS]今週の予定取得</button>
+            </form>
+
+            <form method="POST" action="/draw">
+                <button type="submit">画像生成</button>
+            </form>
+
+            <form method="POST" action="/reset">
+                <button type="submit" class="danger">リセット</button>
+            </form>
+            </div>
+        </div>
+
+        <!-- 予定追加：入力欄 -->
+        <div class="box">
+            <h3>| 予定追加</h3>
+
+            <form method="POST" action="/add" class="add-row">
+            <div class="field">
+                <label>曜日</label>
+                <select name="weekday">
+                <option>月</option>
+                <option>火</option>
+                <option>水</option>
+                <option>木</option>
+                <option>金</option>
+                <option>土</option>
+                <option>日</option>
+                </select>
+            </div>
+
+            <div class="field">
+                <label>時間</label>
+                <input type="text" name="time_range" placeholder="例: 10-12" required>
+            </div>
+
+            <div class="field">
+                <label>投稿者名</label>
+                <input type="text" name="author" placeholder="名前" required>
+            </div>
+
+            <div class="field button-field">
+                <button type="submit">追加</button>
+            </div>
+            </form>
+        </div>
+
+        <!-- 生成された画像 -->
+        <div class="box">
+            <h3>| 生成された画像</h3>
+            <p><a href="/image" target="_blank">画像を開く</a></p>
+            <img id="resultImage" src="/image?dummy={{ count }}" alt="予定表画像">
+        </div>
+
+    </div>
+
+</body>
+
+</html>

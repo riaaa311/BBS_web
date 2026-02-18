@@ -1,0 +1,108 @@
+.container {
+  width: 75%;
+  margin: 0 auto;
+}
+
+body {
+  font-family: sans-serif;
+  background: #f5f5f5;
+  padding: 15px;
+}
+
+h2 {
+  text-align: center;
+}
+
+.box {
+  background: white;
+  padding: 15px;
+  border-radius: 10px;
+  margin-bottom: 15px;
+}
+
+button {
+  padding: 10px 15px;
+  border: none;
+  background: #0078d7;
+  color: white;
+  border-radius: 8px;
+  cursor: pointer;
+  width: 100%;
+}
+
+button:hover {
+  background: #005fa8;
+}
+
+button.danger {
+  background: #d70000;
+}
+
+button.danger:hover {
+  background: #a80000;
+}
+
+input, select {
+  padding: 8px;
+  width: 100%;
+  margin-top: 5px;
+  margin-bottom: 10px;
+  box-sizing: border-box;
+}
+
+.log {
+  background: #111;
+  color: rgb(255, 255, 255);
+  padding: 10px;
+  height: 220px;
+  overflow-y: auto;
+  white-space: pre-wrap;
+  font-size: 13px;
+  border-radius: 8px;
+}
+
+img {
+  max-width: 100%;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  display: block;
+  margin: 0 auto;
+}
+
+/* ---------------------- */
+/* ボタン横並び */
+/* ---------------------- */
+.button-row {
+  display: flex;
+  gap: 10px;
+}
+
+.button-row form {
+  flex: 1;
+}
+
+/* ---------------------- */
+/* 予定追加 横一列 */
+/* ---------------------- */
+.add-row {
+  display: flex;
+  gap: 10px;
+  align-items: flex-end;
+  flex-wrap: wrap;
+}
+
+.field {
+  flex: 1;
+  min-width: 120px;
+}
+
+.button-field {
+  flex: 0.5;
+  min-width: 90px;
+}
+
+@media (max-width: 768px) {
+  .container {
+    width: 100%;
+  }
+}

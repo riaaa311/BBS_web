@@ -59,7 +59,15 @@ def download_bbs_html():
     )
 
     driver.get(URL)
-    time.sleep(3)
+
+    # コメントが読み込まれるまで待つ
+    from selenium.webdriver.common.by import By
+    from selenium.webdriver.support.ui import WebDriverWait
+    from selenium.webdriver.support import expected_conditions as EC
+
+    WebDriverWait(driver, 20).until(
+        EC.presence_of_element_located((By.CSS_SELECTOR, "li[id^='commentEntry']"))
+    )
 
     html = driver.page_source
     driver.quit()
@@ -426,4 +434,5 @@ if __name__ == "__main__":
     # app.run(host="0.0.0.0", port=5000, debug=True)
 
     # Render用
+
     app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 5000)))

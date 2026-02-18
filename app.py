@@ -34,6 +34,11 @@ log_lines = ["| ログ表示"]
 
 ## Chromeが入っているかチェック ##
 def check_chrome_installed():
+    # Docker(Render)環境では which で確認
+    if shutil.which("google-chrome") or shutil.which("google-chrome-stable"):
+        return True
+
+    # Windows環境用（ローカル用）
     chrome_paths = [
         r"C:\Program Files\Google\Chrome\Application\chrome.exe",
         r"C:\Program Files (x86)\Google\Chrome\Application\chrome.exe",
@@ -439,4 +444,5 @@ if __name__ == "__main__":
     # app.run(host="0.0.0.0", port=5000, debug=True)
 
     # Render用
+
     app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 5000)))

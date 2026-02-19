@@ -1,16 +1,11 @@
 import os
 import re
-import shutil
-import time
 from datetime import datetime, timedelta
 
 from flask import Flask, render_template, request, redirect, url_for, send_from_directory
 
 from bs4 import BeautifulSoup
 from PIL import Image, ImageDraw, ImageFont
-from webdriver_manager.chrome import ChromeDriverManager
-from selenium.webdriver.chrome.service import Service
-from selenium import webdriver
 import requests
 
 
@@ -412,6 +407,7 @@ if __name__ == "__main__":
     # Render用
 
     app.run()
+
 
 
 

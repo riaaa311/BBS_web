@@ -3,5 +3,3 @@ gunicorn
 Pillow
 beautifulsoup4
 requests
-selenium
-webdriver-manager

@@ -6,7 +6,7 @@ from flask import Flask, render_template, request, redirect, url_for, send_from_
 
 from bs4 import BeautifulSoup
 from PIL import Image, ImageDraw, ImageFont
-import requests
+import cloudscraper
 
 
 ## 初期設定 ##
@@ -30,21 +30,15 @@ log_lines = ["| ログ表示"]
 
 ## HTMLを取得 ##
 def download_bbs_html():
-    headers = {
-        "User-Agent": (
-            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
-            "AppleWebKit/537.36 (KHTML, like Gecko) "
-            "Chrome/120.0.0.0 Safari/537.36"
-        ),
-        "Accept-Language": "ja,en-US;q=0.9,en;q=0.8",
-        "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8",
-        "Connection": "keep-alive",
-        "Referer": URL
-    }
+    scraper = cloudscraper.create_scraper(
+        browser={
+            "browser": "chrome",
+            "platform": "windows",
+            "mobile": False
+        }
+    )
 
-    session = requests.Session()
-    r = session.get(URL, headers=headers, timeout=15)
-
+    r = scraper.get(URL, timeout=20)
     r.raise_for_status()
 
     with open(HTML_PATH, "w", encoding="utf-8") as f:
@@ -329,8 +323,14 @@ def index():
 def fetch():
     global comments_cache
 
-    add_log("| ページを取得してHTMLを保存します...")
-    download_bbs_html()
+    try:
+        add_log("| ページを取得してHTMLを保存します...")
+        download_bbs_html()
+
+    except Exception as e:
+        add_log("| エラー: HTML取得に失敗しました")
+        add_log(f"| {e}")
+        return redirect(url_for("index"))
 
     add_log("| HTMLから今週のコメントを抽出します...")
     comments_cache = fetch_weekly_comments()
@@ -407,6 +407,7 @@ if __name__ == "__main__":
     # Render用
 
     app.run()
+
 
 
 

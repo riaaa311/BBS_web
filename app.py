@@ -11,6 +11,7 @@ from PIL import Image, ImageDraw, ImageFont
 from webdriver_manager.chrome import ChromeDriverManager
 from selenium.webdriver.chrome.service import Service
 from selenium import webdriver
+import requests
 
 
 ## 初期設定 ##
@@ -32,48 +33,27 @@ comments_cache = []
 log_lines = ["| ログ表示"]
 
 
-## Chromeが入っているかチェック ##
-def check_chrome_installed():
-    return True
-
-
 ## HTMLを取得 ##
 def download_bbs_html():
-    options = webdriver.ChromeOptions()
-    options.add_argument("--headless")
-    options.add_argument("--window-size=1920,1080")
-    options.add_argument("--disable-gpu")
-    options.add_argument("--no-sandbox")
-    options.add_argument("--disable-dev-shm-usage")
+    headers = {
+        "User-Agent": (
+            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
+            "AppleWebKit/537.36 (KHTML, like Gecko) "
+            "Chrome/120.0.0.0 Safari/537.36"
+        ),
+        "Accept-Language": "ja,en-US;q=0.9,en;q=0.8",
+        "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8",
+        "Connection": "keep-alive",
+        "Referer": URL
+    }
 
-    options.add_argument(
-        "user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
-        "AppleWebKit/537.36 (KHTML, like Gecko) "
-        "Chrome/120.0.0.0 Safari/537.36"
-    )
+    session = requests.Session()
+    r = session.get(URL, headers=headers, timeout=15)
 
-    driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=options)
-
-    driver.execute_script(
-        "Object.defineProperty(navigator, 'webdriver', {get: () => undefined})"
-    )
-
-    driver.get(URL)
-
-    # コメントが読み込まれるまで待つ
-    from selenium.webdriver.common.by import By
-    from selenium.webdriver.support.ui import WebDriverWait
-    from selenium.webdriver.support import expected_conditions as EC
-
-    WebDriverWait(driver, 20).until(
-        EC.presence_of_element_located((By.CSS_SELECTOR, "li[id^='commentEntry']"))
-    )
-
-    html = driver.page_source
-    driver.quit()
+    r.raise_for_status()
 
     with open(HTML_PATH, "w", encoding="utf-8") as f:
-        f.write(html)
+        f.write(r.text)
 
 
 ## ログ追加用関数 ##
@@ -354,10 +334,6 @@ def index():
 def fetch():
     global comments_cache
 
-    if not check_chrome_installed():
-        add_log("| Chromeがインストールされていません")
-        return "Chromeがインストールされていません", 400
-
     add_log("| ページを取得してHTMLを保存します...")
     download_bbs_html()
 
@@ -436,3 +412,4 @@ if __name__ == "__main__":
     # Render用
 
     app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 5000)))
+

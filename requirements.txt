@@ -2,4 +2,4 @@ Flask
 gunicorn
 Pillow
 beautifulsoup4
-requests
+cloudscraper

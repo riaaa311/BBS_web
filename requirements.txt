@@ -2,3 +2,4 @@ streamlit
 beautifulsoup4
 Pillow
 requests
+cloudscraper

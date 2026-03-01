@@ -1,10 +1,19 @@
 import os
 import re
 import io
+import time
+import random
 import streamlit as st
 from bs4 import BeautifulSoup
 from PIL import Image, ImageDraw, ImageFont
 from datetime import datetime, timedelta
+
+try:
+    import cloudscraper
+    HAS_CLOUDSCRAPER = True
+except ImportError:
+    HAS_CLOUDSCRAPER = False
+
 import requests
 
 ## ページ設定 ##
@@ -63,16 +72,51 @@ def add_log(msg):
     st.session_state.log.append(msg)
 
 
-## HTMLをrequestsで取得（Seleniumの代替） ##
+## Cloudflare対策：複数の方法を順番に試してHTMLを取得 ##
 def download_bbs_html():
+
+    # --- 方法1: cloudscraper（最も効果的） ---
+    if HAS_CLOUDSCRAPER:
+        try:
+            scraper = cloudscraper.create_scraper(
+                browser={"browser": "chrome", "platform": "windows", "mobile": False}
+            )
+            resp = scraper.get(URL, timeout=20)
+            if resp.status_code == 200:
+                return resp.text
+        except Exception:
+            pass  # 失敗したら次の方法へ
+
+    # --- 方法2: requests + リアルなブラウザヘッダー ---
+    user_agents = [
+        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36",
+        "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36",
+        "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:123.0) Gecko/20100101 Firefox/123.0",
+    ]
     headers = {
-        "User-Agent": (
-            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
-            "AppleWebKit/537.36 (KHTML, like Gecko) "
-            "Chrome/120.0.0.0 Safari/537.36"
-        )
+        "User-Agent": random.choice(user_agents),
+        "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8",
+        "Accept-Language": "ja,en-US;q=0.7,en;q=0.3",
+        "Accept-Encoding": "gzip, deflate, br",
+        "Connection": "keep-alive",
+        "Upgrade-Insecure-Requests": "1",
+        "Sec-Fetch-Dest": "document",
+        "Sec-Fetch-Mode": "navigate",
+        "Sec-Fetch-Site": "none",
+        "Cache-Control": "max-age=0",
     }
-    resp = requests.get(URL, headers=headers, timeout=15)
+
+    session = requests.Session()
+    # まずトップページにアクセス（クッキーを取得）
+    try:
+        session.get("https://pken0hirosaki.jimdofree.com/", headers=headers, timeout=10)
+        time.sleep(random.uniform(1.0, 2.5))  # 人間らしく少し待つ
+    except Exception:
+        pass
+
+    # 本命のBBSページへ
+    headers["Referer"] = "https://pken0hirosaki.jimdofree.com/"
+    resp = session.get(URL, headers=headers, timeout=20)
     resp.raise_for_status()
     return resp.text
 
@@ -363,8 +407,32 @@ if fetch_btn:
                 st.info("今週のコメントは見つかりませんでした。")
                 add_log("今週のコメントは見つかりませんでした。")
         except Exception as e:
-            st.error(f"取得エラー：{e}")
-            add_log(f"❌ エラー: {e}")
+            err = str(e)
+            if "403" in err or "Forbidden" in err:
+                st.error("❌ Cloudflareにブロックされました（403 Forbidden）")
+                st.warning("""
+**対処方法：**
+1. `requirements.txt` に `cloudscraper` を追加してデプロイし直す（最も効果的）
+2. それでも失敗する場合は、下の「HTMLを手動アップロード」から対応できます
+                """)
+                with st.expander("🔧 手動でHTMLをアップロードする方法"):
+                    st.markdown("""
+1. PCのブラウザで [BBSページ](https://pken0hirosaki.jimdofree.com/bbs/) を開く
+2. `Ctrl+S`（Mac: `Cmd+S`）でHTMLファイルとして保存
+3. 下のアップローダーからそのファイルをアップロード
+                    """)
+                    uploaded = st.file_uploader("BBS.html をアップロード", type=["html", "htm"])
+                    if uploaded:
+                        html_manual = uploaded.read().decode("utf-8", errors="ignore")
+                        new_comments = fetch_weekly_comments(html_manual)
+                        st.session_state.comments = [c for c in st.session_state.comments if "weekday" in c]
+                        st.session_state.comments = new_comments + st.session_state.comments
+                        count = count_schedules(st.session_state.comments)
+                        st.success(f"✅ HTMLから読み込み成功！今週の予約件数：{count} 件")
+                        add_log(f"手動HTML取得：{count} 件")
+            else:
+                st.error(f"取得エラー：{e}")
+                add_log(f"❌ エラー: {e}")
 
 st.divider()
 

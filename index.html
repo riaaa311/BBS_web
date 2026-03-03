@@ -202,21 +202,12 @@ const CSS = `
   .blk:hover { transform: scale(1.03); z-index: 20; }
 
   /* ── カレンダー列・グリッド線 ── */
-  .day-col { flex: 1; min-width: 48px; position: relative; }
+  .day-col { flex: 1; min-width: 0; position: relative; }
   .gl-mj   { position: absolute; left: 0; right: 0; height: 1.5px; pointer-events: none; } /* 偶数時間線（太） */
   .gl-mn   { position: absolute; left: 0; right: 0; height: 1px;   pointer-events: none; } /* 奇数時間線（細） */
 
-  /* ── カレンダー横スクロールラッパー ── */
-  .cal-scroll-wrap {
-    overflow-x: auto;
-    -webkit-overflow-scrolling: touch;
-  }
-  .cal-inner {
-    min-width: 560px; /* 7列×最低幅を確保 */
-  }
-
-  /* ── カレンダー本体の高さ ── */
-  .cal-body { height: 560px; }
+  /* ── カレンダー本体の高さ（スマホ: 画面幅に合わせる / PC: 固定） ── */
+  .cal-body { height: clamp(400px, calc(100vw - 28px), 700px); }
   @media (min-width: 600px) { .cal-body { height: 600px; } }
 
   /* ── モーダル・オーバーレイ ── */
@@ -665,8 +656,8 @@ function App() {
 
         {/* Calendar */}
         <div className={isAdmin?"admin-glass":"glass"} style={{borderRadius:18,overflow:"hidden"}}>
-          <div className="cal-scroll-wrap">
-            <div className="cal-inner">
+          <div style={{overflowX:"auto",WebkitOverflowScrolling:"touch"}}>
+            <div style={{minWidth:520}}>  {/* スマホで横スクロール: 最低幅を確保 */}
               {/* Day headers */}
               <div style={{display:"flex",background:isAdmin?"linear-gradient(135deg,rgba(245,158,11,0.07),rgba(217,119,6,0.03))":"linear-gradient(135deg,rgba(108,99,255,0.05),rgba(168,85,247,0.03))",borderBottom:isAdmin?"1px solid rgba(245,158,11,0.15)":"1px solid rgba(108,99,255,0.09)"}}>
                 <div style={{width:48,flexShrink:0}}/>
@@ -706,10 +697,9 @@ function App() {
                 </div>
               )}
             </div>
-            </div>
           </div>
         </div>
-        <p style={{textAlign:"center",fontSize:11,color:"#c4c4d4",marginTop:10,fontWeight:500}}>左クリックで詳細 / 右クリックで編集・削除（スマホ：タップで詳細・編集・削除）</p>
+        <p style={{textAlign:"center",fontSize:11,color:"#c4c4d4",marginTop:10,fontWeight:500}}>左クリックで詳細 / 右クリックで編集・削除</p>
       </div>
 
       {/* Admin Login */}
@@ -851,7 +841,7 @@ function App() {
         </div>
       </div>}
 
-      {/* Detail Modal — with edit/delete buttons */}
+      {/* Detail Modal — 編集・削除ボタンあり（スマホでの操作用） */
       {selected&&(()=>{
         const pal=colorFor(selected.name);
         const dur=selected.endMin-selected.startMin;
@@ -874,12 +864,10 @@ function App() {
                   </div>
                 ))}
               </div>
-              <div style={{display:"flex",gap:8,flexDirection:"column"}}>
-                <div style={{display:"flex",gap:8}}>
-                  <button className="btn btn-purple btn-sm" style={{flex:1}} onClick={()=>{setSelected(null);openEdit(selected);}}>✎ 編集</button>
-                  <button className="btn btn-red btn-sm" style={{flex:1}} onClick={()=>{const s=selected;setSelected(null);askDelete(s);}}>🗑 削除</button>
-                </div>
-                <button className="btn btn-ghost" style={{width:"100%",justifyContent:"center"}} onClick={()=>setSelected(null)}>閉じる</button>
+              <div style={{display:"flex",gap:8,marginTop:4}}>
+                <button className="btn btn-ghost" style={{flex:1}} onClick={()=>setSelected(null)}>閉じる</button>
+                <button className="btn btn-ghost" style={{flex:1,color:"#059669",borderColor:"rgba(16,185,129,0.3)"}} onClick={()=>{openEdit(selected);}}>編集</button>
+                <button className="btn btn-red"   style={{flex:1}} onClick={()=>askDelete(selected)}>削除</button>
               </div>
             </div>
           </div>

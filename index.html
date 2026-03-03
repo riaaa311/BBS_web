@@ -866,7 +866,7 @@ function App() {
               </div>
               <div style={{display:"flex",gap:8,marginTop:4}}>
                 <button className="btn btn-ghost" style={{flex:1}} onClick={()=>setSelected(null)}>閉じる</button>
-                <button className="btn btn-ghost" style={{flex:1,color:"#059669",borderColor:"rgba(16,185,129,0.3)"}} onClick={()=>{openEdit(selected);}}>編集</button>
+                <button className="btn btn-ghost" style={{flex:1,color:"#059669",borderColor:"rgba(16,185,129,0.3)"}} onClick={()=>{const s=selected;setSelected(null);openEdit(s);}}>編集</button>
                 <button className="btn btn-red"   style={{flex:1}} onClick={()=>askDelete(selected)}>削除</button>
               </div>
             </div>
